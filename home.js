@@ -31,7 +31,7 @@ onAuthStateChanged(auth, async (user) => {
             console.error("Error fetching user data:", error);
         }
 
-        // Redirect to index.html after successful login
+        // Redirect to home page after successful login
         window.location.href = "index.html";
     } else {
         console.log("No user logged in");

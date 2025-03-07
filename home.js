@@ -1,54 +1,55 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-import {getAuth, onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-import{getFirestore, getDoc, doc} from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js"
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+import { getFirestore, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
 const firebaseConfig = {
-    //YOUR COPIED FIREBASE PART SHOULD BE HERE
- //WATCH THIS VIDEO TO LEARN WHAT TO PUT HERE   https://youtu.be/_Xczf06n6x0
-  };
- 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+    // YOUR FIREBASE CONFIG HERE
+};
 
-  const auth=getAuth();
-  const db=getFirestore();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
 
-  onAuthStateChanged(auth, (user)=>{
-    const loggedInUserId=localStorage.getItem('loggedInUserId');
-    if(loggedInUserId){
-        console.log(user);
-        const docRef = doc(db, "users", loggedInUserId);
-        getDoc(docRef)
-        .then((docSnap)=>{
-            if(docSnap.exists()){
-                const userData=docSnap.data();
-                document.getElementById('loggedUserFName').innerText=userData.firstName;
-                document.getElementById('loggedUserEmail').innerText=userData.email;
-                document.getElementById('loggedUserLName').innerText=userData.lastName;
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        console.log("User logged in:", user);
 
+        try {
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const userData = docSnap.data();
+                document.getElementById('loggedUserFName').innerText = userData.firstName;
+                document.getElementById('loggedUserEmail').innerText = userData.email;
+                document.getElementById('loggedUserLName').innerText = userData.lastName;
+            } else {
+                console.log("No user document found in Firestore");
             }
-            else{
-                console.log("no document found matching id")
-            }
-        })
-        .catch((error)=>{
-            console.log("Error getting document");
-        })
-    }
-    else{
-        console.log("User Id not Found in Local storage")
-    }
-  })
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
 
-  const logoutButton=document.getElementById('logout');
+        // Redirect to index.html after successful login
+        window.location.href = "index.html";
+    } else {
+        console.log("No user logged in");
+    }
+});
 
-  logoutButton.addEventListener('click',()=>{
-    localStorage.removeItem('loggedInUserId');
-    signOut(auth)
-    .then(()=>{
-        window.location.href='index.html';
-    })
-    .catch((error)=>{
-        console.error('Error Signing out:', error);
-    })
-  })
+// Logout function
+const logoutButton = document.getElementById('logout');
+
+if (logoutButton) {
+    logoutButton.addEventListener('click', () => {
+        signOut(auth)
+            .then(() => {
+                console.log("User signed out");
+                window.location.href = 'index.html';
+            })
+            .catch((error) => {
+                console.error('Error signing out:', error);
+            });
+    });
+}
